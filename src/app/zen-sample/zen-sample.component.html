@@ -6,16 +6,16 @@
     </h3>
   </div>
   <div class="card-body">
+    <button class="btn btn-primary w-100 mb-4" (click)="dispatchOrder()">Order ramen</button>
+
     <div class="d-flex justify-content-between">
-      <button class="btn btn-primary" (click)="flatBread.next('flat bread');">Add flat bread</button>
-      <button class="btn btn-primary" (click)="meat.next('meat');">Add meat</button>
-      <button class="btn btn-primary" (click)="sauce.next('sauce');">Add sauce</button>
-      <button class="btn btn-primary" (click)="tomato.next('tomato');">Add tomato</button>
-      <button class="btn btn-primary" (click)="cabbage.next('cabbage');">Add cabbage</button>
+      <button class="btn btn-primary" (click)="broth.next('broth');">Add broth</button>
+      <button class="btn btn-primary" (click)="noodles.next('noodles');">Add noodles</button>
+      <button class="btn btn-primary" (click)="egg.next('egg');">Add egg</button>
     </div>
     
-    <ng-container *ngIf="durum$ | async as durum">
-      <pre>{{ durum | json }}</pre>
+    <ng-container *ngIf="delivery$ | async as product">
+      <pre>{{ product | json }}</pre>
     </ng-container>
   </div>
 </div>

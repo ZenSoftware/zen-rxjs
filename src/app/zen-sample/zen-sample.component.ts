@@ -1,44 +1,70 @@
 import { Component, OnInit } from '@angular/core';
-import { combineLatest, map, Observable, Subject, tap, zip } from 'rxjs';
+import { combineLatest, map, mergeMap, Observable, Subject, switchMap, take, tap, zip } from 'rxjs';
 
-type Durum = ['flat bread', 'meat', 'sauce', 'tomato', 'cabbage'];
+type Ramen = ['broth', 'noodles', 'egg'];
+
+interface Order {
+  amount: number;
+  customerId: number;
+}
+
+interface Product {
+  product: Ramen;
+  customerId: number;
+}
+
+let broth = 0;
+let noodles = 0;
+let egg = 0;
+
+let customerId = 0;
 
 @Component({
   selector: 'zen-sample',
   templateUrl: './zen-sample.component.html',
 })
 export class ZenSampleComponent implements OnInit {
-  durum$!: Observable<Durum>;
+  ramen$!: Observable<Ramen>;
+  delivery$!: Observable<Product>;
 
-  flatBread = new Subject<'flat bread'>();
-  meat = new Subject<'meat'>();
-  sauce = new Subject<'sauce'>();
-  tomato = new Subject<'tomato'>();
-  cabbage = new Subject<'cabbage'>();
-
-  flatBreadCount = 0;
-  meatCount = 0;
-  sauceCount = 0;
-  tomatoCount = 0;
-  cabbageCount = 0;
+  order = new Subject<Order>();
+  broth = new Subject<'broth'>();
+  noodles = new Subject<'noodles'>();
+  egg = new Subject<'egg'>();
 
   ngOnInit() {
-    this.durum$ = zip(
-      this.flatBread.pipe(map(i => `${i}${++this.flatBreadCount}`), tap(console.log)),
-      this.meat.pipe(map(i => `${i}${++this.meatCount}`), tap(console.log)),
-      this.sauce.pipe(map(i => `${i}${++this.sauceCount}`), tap(console.log)),
-      this.tomato.pipe(map(i => `${i}${++this.tomatoCount}`), tap(console.log)),
-      this.cabbage.pipe(map(i => `${i}${++this.cabbageCount}`), tap(console.log))
+    // zip vs combineLatest
+    this.ramen$ = zip(
+      this.broth.pipe(
+        map(i => `${i}${++broth}`),
+        tap(console.log)
+      ),
+      this.noodles.pipe(
+        map(i => `${i}${++noodles}`),
+        tap(console.log)
+      ),
+      this.egg.pipe(
+        map(i => `${i}${++egg}`),
+        tap(console.log)
+      )
     ).pipe(tap(durum => console.log('Enjoy!', durum)));
 
-    // this.durum$ = combineLatest([
-    //   this.flatBread.pipe(map(i => `${i}${++this.flatBreadCount}`), tap(console.log)),
-    //   this.meat.pipe(map(i => `${i}${++this.meatCount}`), tap(console.log)),
-    //   this.sauce.pipe(map(i => `${i}${++this.sauceCount}`), tap(console.log)),
-    //   this.tomato.pipe(map(i => `${i}${++this.tomatoCount}`), tap(console.log)),
-    //   this.cabbage.pipe(map(i => `${i}${++this.cabbageCount}`), tap(console.log))
-    // ]).pipe(tap(durum => console.log('Enjoy!', durum)));
+    // mergeMap vs switchMap
+    this.delivery$ = this.order.pipe(
+      tap(order => console.log('New order:', order)),
+      switchMap(({ amount, customerId }) =>
+        this.ramen$.pipe(
+          take(amount),
+          map(durum => ({ product: durum, customerId: customerId }))
+        )
+      ),
+      tap(product => console.log('Delivered product:', product))
+    );
   }
 
-  emitNoodles() {}
+  dispatchOrder() {
+    const amount = Math.floor(Math.random() * 3) + 1;
+    ++customerId;
+    this.order.next({ amount, customerId });
+  }
 }
